@@ -5,3 +5,10 @@ edition = "2024"
 license = "MIT"
 
 [dependencies]
+http-body-util = { workspace = true }
+hyper = { workspace = true }
+hyper-util = { workspace = true }
+log = { workspace = true }
+pretty_env_logger = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
