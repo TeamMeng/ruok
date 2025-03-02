@@ -1,0 +1,19 @@
+### GET /
+GET http://127.0.0.1:1337
+
+### GET /index.html
+GET http://127.0.0.1:1337/index.html
+
+### GET /test.html
+GET http://127.0.0.1:1337/test.html
+
+### GET /json_api.html
+GET http://127.0.0.1:1337/json_api
+
+### POST /json_api.html
+POST http://127.0.0.1:1337/json_api
+Content-Type: application/json
+
+{
+    "hello": "Hello World"
+}
