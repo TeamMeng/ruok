@@ -6,8 +6,8 @@ use std::error::Error;
 
 type GenericError = Box<dyn Error + Send + Sync>;
 type Result<T> = std::result::Result<T, GenericError>;
-type BoxBody = http_body_util::combinators::BoxBody<Bytes, hyper::Error>;
 
+pub type BoxBody = http_body_util::combinators::BoxBody<Bytes, hyper::Error>;
 pub type Response = Result<hyper::Response<BoxBody>>;
 pub type OkRequest = hyper::Request<Incoming>;
 
