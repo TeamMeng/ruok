@@ -8,12 +8,10 @@ use hyper_util::rt::TokioIo;
 use std::{net::SocketAddr, sync::Arc};
 use tokio::net::TcpListener;
 
-#[allow(unused)]
 pub struct Ruok {
     router: Arc<Router>,
 }
 
-#[allow(unused)]
 impl Ruok {
     pub fn new() -> Self {
         Self {
@@ -42,6 +40,8 @@ impl Ruok {
     }
 
     async fn handler_request(req: Request<Incoming>) -> Response {
+        req.method();
+        req.uri().path();
         Ok(hyper::Response::builder()
             .status(StatusCode::NOT_FOUND)
             .body(full("404 NOT FOUND"))
@@ -78,5 +78,11 @@ impl Ruok {
     pub fn any(mut self, path: &str, handler: impl Handler) -> Self {
         Arc::get_mut(&mut self.router).unwrap().any(path, handler);
         self
+    }
+}
+
+impl Default for Ruok {
+    fn default() -> Self {
+        Self::new()
     }
 }

@@ -11,7 +11,6 @@ pub type BoxBody = http_body_util::combinators::BoxBody<Bytes, hyper::Error>;
 pub type Response = Result<hyper::Response<BoxBody>>;
 pub type OkRequest = hyper::Request<Incoming>;
 
-#[allow(unused)]
 #[async_trait]
 pub trait Handler: Send + Sync + 'static {
     async fn handler(&self, req: Request) -> Response;

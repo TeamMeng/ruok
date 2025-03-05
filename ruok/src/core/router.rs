@@ -2,12 +2,10 @@ use super::types::Handler;
 use hyper::Method;
 use std::{collections::HashMap, sync::Arc};
 
-#[allow(unused)]
 pub struct Router {
     routers: HashMap<String, Arc<dyn Handler>>,
 }
 
-#[allow(unused)]
 impl Router {
     pub fn new() -> Self {
         Self {
@@ -47,5 +45,11 @@ impl Router {
         self.add_router(path, Method::PUT, h.clone());
         self.add_router(path, Method::DELETE, h.clone());
         self.add_router(path, Method::PATCH, h.clone());
+    }
+}
+
+impl Default for Router {
+    fn default() -> Self {
+        Self::new()
     }
 }
