@@ -7,6 +7,7 @@ license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+async-trait = "0.1.87"
 bytes = "1.10.0"
 futures = "0.3.31"
 http-body-util = { workspace = true }
