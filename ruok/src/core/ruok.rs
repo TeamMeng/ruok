@@ -1,9 +1,9 @@
 use super::{
-    response_util::full,
+    response_util::ResponseUtil,
     router::Router,
     types::{Handler, Response},
 };
-use hyper::{Request, StatusCode, body::Incoming, server::conn::http1, service::service_fn};
+use hyper::{Request, body::Incoming, server::conn::http1, service::service_fn};
 use hyper_util::rt::TokioIo;
 use std::{net::SocketAddr, sync::Arc};
 use tokio::net::TcpListener;
@@ -42,10 +42,7 @@ impl Ruok {
     async fn handler_request(req: Request<Incoming>) -> Response {
         req.method();
         req.uri().path();
-        Ok(hyper::Response::builder()
-            .status(StatusCode::NOT_FOUND)
-            .body(full("404 NOT FOUND"))
-            .unwrap())
+        ResponseUtil::string("404 NOT FOUND", 404)
     }
 
     pub fn get(mut self, path: &str, handler: impl Handler) -> Self {

@@ -13,5 +13,6 @@ futures = "0.3.31"
 http-body-util = { workspace = true }
 hyper = { workspace = true }
 hyper-util = { workspace = true }
-serde_json = { workspace = true }
+serde = { version = "1.0.218", features = ["derive"] }
+serde_json.workspace = true
 tokio = { workspace = true }
