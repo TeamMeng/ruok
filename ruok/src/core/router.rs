@@ -46,6 +46,14 @@ impl Router {
         self.add_router(path, Method::DELETE, h.clone());
         self.add_router(path, Method::PATCH, h.clone());
     }
+
+    pub fn match_router(&self, path: &str, method: Method) -> Option<Arc<dyn Handler>> {
+        let key = format!("{}_{}", path, method);
+        match self.routers.get(&key) {
+            Some(handler) => Some(handler.clone()),
+            None => None,
+        }
+    }
 }
 
 impl Default for Router {

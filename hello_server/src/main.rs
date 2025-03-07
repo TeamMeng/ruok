@@ -1,8 +1,17 @@
-use ruok::core::ruok::Ruok;
+use ruok::core::{request::Request, response_util::ResponseUtil, ruok::Ruok, types::Response};
 
 #[tokio::main]
 async fn main() {
-    Ruok::new().serve("0.0.0.0:8080").await.unwrap();
+    Ruok::new()
+        .group("/user")
+        .get("/hello", hello)
+        .serve("0.0.0.0:8080")
+        .await
+        .unwrap();
+}
+
+async fn hello(_req: Request) -> Response {
+    ResponseUtil::string("Hello World", 200)
 }
 
 #[cfg(test)]
