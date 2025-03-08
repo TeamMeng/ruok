@@ -1,16 +1,49 @@
-use super::types::Handler;
+use super::{ruok::Status, types::Handler};
 use hyper::Method;
 use std::{collections::HashMap, sync::Arc};
 
 pub struct Router {
     routers: HashMap<String, Arc<dyn Handler>>,
+    middle_handlers: Vec<Arc<dyn Handler>>,
+    group_middle_handlers: HashMap<String, Vec<Arc<dyn Handler>>>,
 }
 
 impl Router {
     pub fn new() -> Self {
         Self {
             routers: HashMap::new(),
+            middle_handlers: Vec::new(),
+            group_middle_handlers: HashMap::new(),
         }
+    }
+
+    pub fn add_middleware(&mut self, m: impl Handler, status: Status) {
+        match status {
+            Status::Frame => self.middle_handlers.push(Arc::new(m)),
+            Status::Group(prefix) => match self.group_middle_handlers.get_mut(prefix.as_str()) {
+                Some(v) => v.push(Arc::new(m)),
+                None => {
+                    self.group_middle_handlers.insert(prefix, vec![Arc::new(m)]);
+                }
+            },
+            Status::Router(path) => panic!("Can't add path: {} to middleware", path),
+        }
+    }
+
+    pub fn get_middleware(&self) -> Vec<Arc<dyn Handler>> {
+        self.middle_handlers.clone()
+    }
+
+    pub fn match_group_middleware(&self, path: String) -> Vec<Arc<dyn Handler>> {
+        let keys = self.group_middle_handlers.keys();
+        for k in keys {
+            let prefix = format!("{}{}", k, "/");
+            if path.contains(&prefix) {
+                let vec = self.group_middle_handlers.get(k).unwrap().clone();
+                return vec;
+            }
+        }
+        vec![]
     }
 
     pub fn add_router(&mut self, path: &str, method: Method, handler: Arc<dyn Handler>) {

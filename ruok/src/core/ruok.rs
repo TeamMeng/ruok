@@ -9,9 +9,17 @@ use hyper_util::rt::TokioIo;
 use std::{net::SocketAddr, sync::Arc};
 use tokio::net::TcpListener;
 
+#[derive(Clone)]
+pub enum Status {
+    Frame,
+    Group(String),
+    Router(String),
+}
+
 pub struct Ruok {
     prefix: &'static str,
     router: Arc<Router>,
+    status: Status,
 }
 
 impl Ruok {
@@ -19,6 +27,7 @@ impl Ruok {
         Self {
             prefix: "",
             router: Arc::new(Router::new()),
+            status: Status::Frame,
         }
     }
 
@@ -49,34 +58,51 @@ impl Ruok {
         let path = req.uri().path().to_string();
         let method = req.method().clone();
 
+        let mut handlers = self.router.get_middleware();
+        let group_handlers = self.router.match_group_middleware(path.clone());
+        handlers = [handlers, group_handlers].concat();
+
         match self.router.match_router(&path, method) {
             Some(handler) => {
-                let req = Request::new(req);
-                handler.handler(req).await
+                handlers.push(handler);
             }
-            None => ResponseUtil::string("404 NOT FOUND", 404),
+            None => handlers.push(Arc::new(not_found)),
         }
+
+        let req = Request::new(req, handlers);
+        req.run().await
+    }
+
+    pub fn with(mut self, m: impl Handler) -> Self {
+        Arc::get_mut(&mut self.router)
+            .unwrap()
+            .add_middleware(m, self.status.clone());
+        self
     }
 
     pub fn group(mut self, prefix: &'static str) -> Self {
         self.prefix = prefix;
+        self.status = Status::Group(prefix.to_string());
         self
     }
 
     pub fn get(mut self, path: &str, handler: impl Handler) -> Self {
         let path = format!("{}{}", self.prefix, path);
+        self.status = Status::Router(path.clone());
         Arc::get_mut(&mut self.router).unwrap().get(&path, handler);
         self
     }
 
     pub fn post(mut self, path: &str, handler: impl Handler) -> Self {
         let path = format!("{}{}", self.prefix, path);
+        self.status = Status::Router(path.clone());
         Arc::get_mut(&mut self.router).unwrap().post(&path, handler);
         self
     }
 
     pub fn delete(mut self, path: &str, handler: impl Handler) -> Self {
         let path = format!("{}{}", self.prefix, path);
+        self.status = Status::Router(path.clone());
         Arc::get_mut(&mut self.router)
             .unwrap()
             .delete(&path, handler);
@@ -85,12 +111,14 @@ impl Ruok {
 
     pub fn put(mut self, path: &str, handler: impl Handler) -> Self {
         let path = format!("{}{}", self.prefix, path);
+        self.status = Status::Router(path.clone());
         Arc::get_mut(&mut self.router).unwrap().put(&path, handler);
         self
     }
 
     pub fn patch(mut self, path: &str, handler: impl Handler) -> Self {
         let path = format!("{}{}", self.prefix, path);
+        self.status = Status::Router(path.clone());
         Arc::get_mut(&mut self.router)
             .unwrap()
             .patch(&path, handler);
@@ -99,6 +127,7 @@ impl Ruok {
 
     pub fn any(mut self, path: &str, handler: impl Handler) -> Self {
         let path = format!("{}{}", self.prefix, path);
+        self.status = Status::Router(path.clone());
         Arc::get_mut(&mut self.router).unwrap().any(&path, handler);
         self
     }
@@ -108,4 +137,8 @@ impl Default for Ruok {
     fn default() -> Self {
         Self::new()
     }
+}
+
+async fn not_found(_req: Request) -> Response {
+    ResponseUtil::string("NOT FOUND", 404)
 }
